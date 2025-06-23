@@ -1,0 +1,605 @@
+openapi: 3.0.3
+info:
+  title: PageHaven API
+  description: API documentation for the PageHaven Book E-commerce platform.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+tags:
+  - name: Authentication
+    description: Endpoints for user authentication
+  - name: Books
+    description: Endpoints for managing books
+  - name: Users
+    description: Endpoints for managing users
+  - name: Cart
+    description: Endpoints for managing the shopping cart
+  - name: Orders
+    description: Endpoints for managing orders
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid login credentials
+        '404':
+          description: User not found
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Validation error
+  /api/books:
+    get:
+      tags:
+        - Books
+      summary: Get a list of books
+      parameters:
+        - in: query
+          name: isbn
+          schema:
+            type: string
+          description: Filter by ISBN
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Filter by title
+        - in: query
+          name: author
+          schema:
+            type: string
+          description: Filter by author
+        - in: query
+          name: genre
+          schema:
+            type: string
+          description: Filter by genre
+        - in: query
+          name: minPrice
+          schema:
+            type: number
+          description: Minimum price filter
+        - in: query
+          name: maxPrice
+          schema:
+            type: number
+          description: Maximum price filter
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [title, author, price]
+          description: Sort by field
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Number of items per page
+      responses:
+        '200':
+          description: List of books
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBooksResponse'
+  /api/books/{id}:
+    get:
+      tags:
+        - Books
+      summary: Get details of a specific book
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Book ID
+      responses:
+        '200':
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBookResponse'
+        '404':
+          description: Book not found
+    put:
+      tags:
+        - Books
+      summary: Update a book
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Book ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateBookRequest'
+      responses:
+        '200':
+          description: Book updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: Book not found
+    delete:
+      tags:
+        - Books
+      summary: Delete a book
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Book ID
+      responses:
+        '200':
+          description: Book deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: Book not found
+  /api/cart:
+    get:
+      tags:
+        - Cart
+      summary: Get cart items
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of cart items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCartItemsResponse'
+    post:
+      tags:
+        - Cart
+      summary: Add an item to the cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCartItemRequest'
+      responses:
+        '200':
+          description: Item added to cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Item already in cart
+  /api/cart/{id}:
+    delete:
+      tags:
+        - Cart
+      summary: Remove an item from the cart
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Cart item ID
+      responses:
+        '200':
+          description: Item removed from cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: Item not found
+  /api/users:
+    get:
+      tags:
+        - Users
+      summary: Get a list of users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUsersResponse'
+  /api/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get details of a specific user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserResponse'
+        '404':
+          description: User not found
+  /api/orders:
+    get:
+      tags:
+        - Orders
+      summary: Get a list of orders
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrdersResponse'
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: user123
+        password:
+          type: string
+          example: password
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    RegisterRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        phone:
+          type: string
+          example: 1234567890
+        role:
+          type: string
+          enum: [buyer, seller]
+          example: buyer
+        username:
+          type: string
+          example: johndoe
+        password:
+          type: string
+          example: password123
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+                phone:
+                  type: string
+                  example: 1234567890
+                role:
+                  type: string
+                  example: buyer
+            token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    GetBooksResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Book'
+        pagination:
+          type: object
+          properties:
+            currentPage:
+              type: integer
+              example: 1
+            totalPages:
+              type: integer
+              example: 10
+    GetBookResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Book'
+    Book:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64a7b2f5e4b0c8a1b2c3d4e5
+        isbn:
+          type: string
+          example: 9781234567890
+        title:
+          type: string
+          example: The Great Gatsby
+        author:
+          type: string
+          example: F. Scott Fitzgerald
+        genre:
+          type: string
+          example: Fiction
+        description:
+          type: string
+          example: A classic novel set in the Jazz Age.
+        price:
+          type: number
+          example: 19.99
+        coverImage:
+          type: string
+          example: uploads/covers/gatsby.jpg
+        owner:
+          type: object
+          properties:
+            firstName:
+              type: string
+              example: John
+            lastName:
+              type: string
+              example: Doe
+            phone:
+              type: string
+              example: 1234567890
+    UpdateBookRequest:
+      type: object
+      properties:
+        isbn:
+          type: string
+          example: 9781234567890
+        title:
+          type: string
+          example: The Great Gatsby
+        author:
+          type: string
+          example: F. Scott Fitzgerald
+        genre:
+          type: string
+          example: Fiction
+        description:
+          type: string
+          example: A classic novel set in the Jazz Age.
+        price:
+          type: number
+          example: 19.99
+        coverImage:
+          type: string
+          format: binary
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+    GetCartItemsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+    CartItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64a7b2f5e4b0c8a1b2c3d4e5
+        book:
+          $ref: '#/components/schemas/Book'
+    AddCartItemRequest:
+      type: object
+      properties:
+        bookId:
+          type: string
+          example: 64a7b2f5e4b0c8a1b2c3d4e5
+    GetUsersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    GetUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64a7b2f5e4b0c8a1b2c3d4e5
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        phone:
+          type: string
+          example: 1234567890
+        role:
+          type: string
+          example: buyer
+    GetOrdersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+    CreateOrderRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              bookId:
+                type: string
+                example: 64a7b2f5e4b0c8a1b2c3d4e5
+              quantity:
+                type: integer
+                example: 2
+    Order:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64a7b2f5e4b0c8a1b2c3d4e5
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              book:
+                $ref: '#/components/schemas/Book'
+              quantity:
+                type: integer
+                example: 2
+        totalPrice:
+          type: number
+          example: 39.98
+        status:
+          type: string
+          example: pending
